@@ -1,0 +1,5 @@
+Merchant ID: Km9bRFJo9n7kju
+QR1_ID: qr_KpjPjhcp11G9kZ
+Webhook URL : https://api.razorpay.com/v1/payments/qr_codes/qr_FuZIYx6rMbP6gs/payments
+YOUR_ID:
+YOUR_SECRET:
