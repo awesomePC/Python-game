@@ -695,15 +695,15 @@ def thread_timer():
     
 #start game selected by user.
 def start_game():
-    command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
-    os.system(command_to_play_game)
+    # command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
+    # os.system(command_to_play_game)
 
     #disply pay screen
-    # display_pay_screen()
+    display_pay_screen()
     
-    # x = threading.Thread(target=thread_function, args=())
-    # x.start()
-    # print(1)
+    x = threading.Thread(target=thread_function, args=())
+    x.start()
+    print(1)
     
 def thread_function_repay():
 
