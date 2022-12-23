@@ -360,7 +360,7 @@ def pay_screen():
     canvas.grid(column=0, row=2, columnspan=2, sticky=tk.N)
 
 #Pay screen generate function
-def pay_screen_time():
+def repay_screen():
     #left side
     global leftside_frame
     
@@ -441,15 +441,7 @@ def gamemenu_screen():
 
     #####left side#######
     global leftside_frame, window
-     # bind the mousewheel to scroll up/down
-    # leftside_frame.bind("<MouseWheel>", lambda x: canvas.yview_scroll(int(-1*(x.delta/40)), "units"))
- # bind the mousewheel to scroll up/down
-    # leftside_frame.bind("<MouseWheel>", lambda x: canvas.yview_scroll(int(-1*(x.delta/40)), "units"))
-
-    # labels = [Label(frame, text=str(i)) for i in range(20)] # make some Labels
-    # for l in labels: l.pack() # pack them
-    # labels = [Label(frame, text=str(i)) for i in range(20)] # make some Labels
-    # for l in labels: l.pack() # pack them
+   
     # define grid columns
     leftside_frame.columnconfigure(0, weight=1)
     leftside_frame.columnconfigure(1, weight=1)
@@ -594,7 +586,7 @@ def display_pay_screen():
     pay_screen()
     #scan payment
     
-def thread_function():
+def pay_thread_function():
 
     global count_time
     total_time = 30
@@ -634,31 +626,27 @@ def thread_function():
                 #start game
                 print("111111")
                 global gbl_game_id
-                if gbl_game_id == 0:
-                    # pass
-                    showwarning(title='Warning', message='Please select a game to play.')
-            
-                else:
-                    global second_win
-                    second_win = Toplevel()
-                    second_win.title("timer")
-                    second_win.geometry("400x100")
-                    second_win.overrideredirect(True)
-                    second_win.attributes('-topmost',True)
-                    second_win.rowconfigure(0, weight=1)
-                    second_win.columnconfigure(0, weight=1)
-                    global text_time
-                    text_time = tk.Label(second_win, text='3:00',bg='#181515', fg='#FFF', font=50)
-                    text_time.config(font=('Helvetica bold',40))
-                    text_time.grid(column=0, row=0, sticky=tk.EW)
+                global second_win
 
-                    timer = threading.Thread(target=thread_timer, args=())
-                    timer.start()
-                    print(1)
-                    command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
-                    os.system(command_to_play_game)
-                    global window
-                    window.withdraw()
+                second_win = Toplevel()
+                second_win.title("timer")
+                second_win.geometry("130x40")
+                second_win.overrideredirect(True)
+                second_win.attributes('-topmost',True)
+                second_win.rowconfigure(0, weight=1)
+                second_win.columnconfigure(0, weight=1)
+                global text_time
+                text_time = tk.Label(second_win, text='3:00',bg='#181515', fg='#FFF', font=50)
+                text_time.config(font=('Helvetica bold',20))
+                text_time.grid(column=0, row=0, sticky=tk.EW)
+
+                timer = threading.Thread(target=thread_timer, args=())
+                timer.start()
+                print(1)
+                command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
+                os.system(command_to_play_game)
+                global window
+                window.withdraw()
                     
 
                 x2 = threading.Thread(target=thread_function2, args=())
@@ -699,13 +687,13 @@ def start_game():
     # os.system(command_to_play_game)
 
     #disply pay screen
-    display_pay_screen()
+    clear_frames()
+    pay_screen()
     
-    x = threading.Thread(target=thread_function, args=())
+    x = threading.Thread(target=pay_thread_function, args=())
     x.start()
-    print(1)
     
-def thread_function_repay():
+def repay_thread_function():
 
     global count_time
     total_time = 30
@@ -747,8 +735,8 @@ def thread_function2():
     window.deiconify()
     showwarning(title='Warning', message='Please pay again to play.')
     clear_frames()
-    pay_screen_time()
-    x = threading.Thread(target=thread_function_repay, args=())
+    repay_screen()
+    x = threading.Thread(target=repay_thread_function, args=())
     x.start()
     global second_win
     second_win.withdraw()
