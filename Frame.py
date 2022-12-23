@@ -25,6 +25,11 @@ game_images = ["Contra.jpg", "DK.jpg", "Excite bike.png", "fighter.jpg", "metroi
 game_sources = ["Contra.nes", "Donkey_Kong.nes", "Excitebike.nes", "Kung_Fu.nes", "Metroid.nes", "Street_Fighter.nes", "Pac-Man.nes", "Road_Fighter.nes", "Super_Mario_Bros.nes", "Tetris.nes", "Legend_of_Zelda.nes"]
 game_names = ["Contra", "Donkey kong", "Excite Bike", "Street Fighter", "Metroid", "Sparta X", "Pac Man", "Road Fighter", "Super Mario Bros", "Tetris", "Legend of Zelda"]
 
+# clock timer thread
+global th_clock, e_clock
+# e_clock = threading.Event()
+# th_clock = threading.Thread(target=clock_thread, args=(e_clock,))
+
 #Function for leftside Frame of window
 def left_frame(container):
     #global left frame
@@ -318,7 +323,7 @@ def pay_screen():
     # Game list
     global game_1, game_2, game_3, game_4
     #game_1 label
-    game_1 = tk.Label(leftside_frame, text='>RS 10 FOR 10MINUTES PLAY', bg='#181515', fg='orange')
+    game_1 = tk.Label(leftside_frame, text='>RS 10 FOR 2 MINUTES PLAY', bg='#181515', fg='orange')
     game_1.config(font=('Helvetica bold',30))
     game_1.grid(column=0, row=1, columnspan=2, padx= 40, sticky=tk.W)
 
@@ -393,7 +398,7 @@ def repay_screen():
     game_1.config(font=('Helvetica bold',30))
     game_1.grid(column=0, row=1, columnspan=2, padx= 40, sticky=tk.W)
      #game_1 label
-    game_2 = tk.Label(leftside_frame, text='SCAN & PAYRS 10 FOR 10MINUTES PLAY', bg='#181515', fg='orange')
+    game_2 = tk.Label(leftside_frame, text='SCAN & PAYRS 10 FOR 2 MINUTES PLAY', bg='#181515', fg='orange')
     game_2.config(font=('Helvetica bold',30))
     game_2.grid(column=0, row=2, columnspan=2, padx= 80, sticky=tk.W)
 
@@ -586,7 +591,7 @@ def display_pay_screen():
     pay_screen()
     #scan payment
     
-def pay_thread_function():
+def pay_thread_function(e):
 
     global count_time
     total_time = 30
@@ -602,7 +607,7 @@ def pay_thread_function():
     your_id = pay_info[3].split(":")[1]
     your_secret = pay_info[4].split(":")[1]
 
-    while total_time > 0:
+    while total_time > 20:
 
         time.sleep(1)
         total_time = total_time - 1
@@ -616,7 +621,7 @@ def pay_thread_function():
         # result = client.qrcode.fetch_all_payments(qr_id)
         result = 1
         global text
-        if result == 1 and total_time == 0:
+        if result == 1 and total_time == 20:
             text["text"] = "PROCESSING..."
             time.sleep(2)
             # text["text"] = "PAYMENT SUCCESSFUL"
@@ -624,7 +629,6 @@ def pay_thread_function():
             print("here")
             if result == 1:
                 #start game
-                print("111111")
                 global gbl_game_id
                 global second_win
 
@@ -635,13 +639,23 @@ def pay_thread_function():
                 second_win.attributes('-topmost',True)
                 second_win.rowconfigure(0, weight=1)
                 second_win.columnconfigure(0, weight=1)
+
                 global text_time
                 text_time = tk.Label(second_win, text='3:00',bg='#181515', fg='#FFF', font=50)
                 text_time.config(font=('Helvetica bold',20))
                 text_time.grid(column=0, row=0, sticky=tk.EW)
+                
+                #create thread for clock
+                global th_clock, e_clock
+                e_clock = threading.Event()
+                th_clock = threading.Thread(target=clock_thread, args=(e_clock,))
+                th_clock.daemon = True
+                th_clock.start()
 
-                timer = threading.Thread(target=thread_timer, args=())
-                timer.start()
+                # import multiprocessing
+                # global proc
+                # proc = multiprocessing.Process(target=clock_thread, args=())
+                # proc.start()
                 print(1)
                 command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
                 os.system(command_to_play_game)
@@ -650,7 +664,9 @@ def pay_thread_function():
                     
 
                 x2 = threading.Thread(target=thread_function2, args=())
+                x2.daemon = True
                 x2.start()
+
                 print(2)
             elif result == 0:
                 print("jere")
@@ -666,16 +682,17 @@ def pay_thread_function():
         # print(result)
         
     
-def thread_timer():
+def clock_thread(e):
 
-    total_time = 180
+    total_time = 120
+
     while total_time > 0:
-
         time.sleep(1)
         total_time = total_time - 1
         minute = total_time//60
         second = total_time%60
-        # display_pay_screen()
+
+        # update clock time()
         if second < 10:
             text_time['text'] = f"{minute}:0{second}"
         else:
@@ -690,8 +707,12 @@ def start_game():
     clear_frames()
     pay_screen()
     
-    x = threading.Thread(target=pay_thread_function, args=())
-    x.start()
+    #create thread for pay screen
+    global th_pay, e_pay
+    e_pay = threading.Event()
+    th_pay = threading.Thread(target=pay_thread_function, args=(e_pay,))
+    th_pay.daemon = True
+    th_pay.start()
     
 def repay_thread_function():
 
@@ -736,7 +757,20 @@ def thread_function2():
     showwarning(title='Warning', message='Please pay again to play.')
     clear_frames()
     repay_screen()
-    x = threading.Thread(target=repay_thread_function, args=())
+    
+    #clock timer stop and kill
+    global th_clock, e_clock
+    e_clock.clear()
+    
+    
+    # Terminate the process
+    # global proc
+    # proc.terminate() 
+
+    #repay thread
+    global th_pay, e_pay
+    x = threading.Thread(target=pay_thread_function, args=(e_pay,))
+    x.daemon = True
     x.start()
     global second_win
     second_win.withdraw()
@@ -748,3 +782,5 @@ def thread_function2():
 if __name__ == "__main__":
     create_main_window()
 
+#process killing
+sys.exit()
