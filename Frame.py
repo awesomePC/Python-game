@@ -12,19 +12,22 @@ import time
 import subprocess
 import webbrowser
 import time
-import threading
-import razorpay
+# import razorpay
 
 #global variable to show selected game.
 gbl_game_id = 0
 # Is Alt-F4 pressed?
 pressed_f4 = False 
+#variable to store game process ID
 pid_file_path = "1.txt"
+#varialbes to store Images, sources and names of Games
 game_images = ["Contra.jpg", "DK.jpg", "Excite bike.png", "fighter.jpg", "metroid.jpg", "NES_01.gif", "pac.jpg", "road.png", "SuperMarioBro.jpg", "tetris.jpg", "zelda.jpg"]
-game_sources = ["Contras.nes", "Donkey_Kong.nes", "Excitebike.nes", "Kung_Fu.nes", "Metroid.nes", "Street_Fighter.nes", "Man-Pac.nes", "Road_Fighter.nes", "Super_Mario_Bros.nes", "Tetris.nes", "Legend_of_Zelda.nes"]
+game_sources = ["Contra.nes", "Donkey_Kong.nes", "Excitebike.nes", "Kung_Fu.nes", "Metroid.nes", "Street_Fighter.nes", "Pac-Man.nes", "Road_Fighter.nes", "Super_Mario_Bros.nes", "Tetris.nes", "Legend_of_Zelda.nes"]
 game_names = ["Contra", "Donkey kong", "Excite Bike", "Street Fighter", "Metroid", "Sparta X", "Pac Man", "Road Fighter", "Super Mario Bros", "Tetris", "Legend of Zelda"]
 
+#Function for leftside Frame of window
 def left_frame(container):
+    #global left frame
     global leftside_frame
     leftside_frame = tk.Frame(container, width= container.winfo_screenwidth(), height=container.winfo_screenheight(), bg="#181515")
     
@@ -50,8 +53,7 @@ def left_frame(container):
     text.config(font=('Helvetica bold',80))
     text.grid(column=0, row=0, columnspan=4, padx=40, sticky=tk.W)
 
-
-    # 
+    # Canvas for scrollbar
     canvas = Canvas(leftside_frame, height=400, highlightthickness=0,  bg="#181515") # a canvas in the parent object
     frame = Frame(canvas, bg="#181515") # a frame in the canvas
 
@@ -77,11 +79,9 @@ def left_frame(container):
     scrollbar = Scrollbar(leftside_frame, orient="vertical", command=canvas.yview)
     # connect the canvas to the scrollbar
     canvas.configure(yscrollcommand=scrollbar.set)
-    # scrollbar.grid(column=0, row=1, columnspan=1, sticky=tk.N)
-    # scrollbar.pack(side="right", fill="y") # comment out this line to hide the scrollbar
     canvas.grid(column=0, row=2, columnspan=4, sticky=tk.EW)
-    # canvas.pack(side="left", fill="both", expand=True) # pack the canvas
-    # make the frame a window in the canvas
+
+    # make the frame in the canvas
     canvas.create_window((4,4), window=frame, anchor="nw", tags="frame")
    
     # bind the frame to the scrollbar
@@ -94,6 +94,7 @@ def left_frame(container):
     # labels = [Label(frame, text=str(i)) for i in range(20)] # make some Labels
     # for l in labels: l.pack() # pack them
 
+    #Labels to display Game list
     global labels
     labels = []
     for i in range(11):
@@ -103,27 +104,9 @@ def left_frame(container):
     for i in range(11): 
         labels[i].grid(column=0, row=i+1, columnspan=2, padx= 80, pady= 5, sticky=tk.W)
         # l.pack() # pack them
-
-
-
-    # Game list
-    # global game_1, game_2, game_3, game_4
-    # #game_1 label
-    # game_1 = tk.Label(leftside_frame, text='>PAC MAN', bg='#181515', fg='orange')
-    # game_1.config(font=('Helvetica bold',30))
-    # game_1.grid(column=0, row=1, columnspan=2, padx= 40, sticky=tk.W)
-    # #game_2 label
-    # game_2 = tk.Label(leftside_frame, text='   SUPER MARIO BROS', bg='#181515', fg='orange')
-    # game_2.config(font=('Helvetica bold',30))
-    # game_2.grid(column=0, row=2, columnspan=2, padx= 40, sticky=tk.W)
-    # #game_3 label
-    # game_3 = tk.Label(leftside_frame, text='   CONTRAA', bg='#181515', fg='orange')
-    # game_3.config(font=('Helvetica bold',30))
-    # game_3.grid(column=0, row=3, columnspan=2, padx= 40, sticky=tk.W)
-    # #game_4 label
-    # game_4 = tk.Label(leftside_frame, text='   TETRIS', bg='#181515', fg='orange')
-    # game_4.config(font=('Helvetica bold',30))
-    # game_4.grid(column=0, row=4, columnspan=2, padx= 40, sticky=tk.W)
+    
+    #highligth selected game
+    labels[gbl_game_id]['text'] = f">{game_names[gbl_game_id]}"
 
     #game_slect label
     select = tk.Label(leftside_frame, text='SELECT', bg='#181515', fg='orange')
@@ -137,6 +120,7 @@ def left_frame(container):
     select_img = tk.Label(leftside_frame, image=img)
     select_img.grid(column=1, row=6, sticky=tk.W)
     select_img.image = img
+
     #play label
     global play
     play = tk.Label(leftside_frame, text='PLAY', bg='#181515', fg='orange')
@@ -153,7 +137,9 @@ def left_frame(container):
 
     return leftside_frame
 
+#Function for rightside Frame of window
 def right_frame(container):
+    #global right frame
     global rightside_frame
     rightside_frame = tk.Frame(container, width=container.winfo_screenwidth()/2, height=2000, bg="#181515")
     # define grid columns
@@ -166,7 +152,7 @@ def right_frame(container):
     rightside_frame.rowconfigure(3, weight=1)
     rightside_frame.rowconfigure(4, weight=1)
 
-    # Right sied Title
+    # Right side Title
     text_top = tk.Label(rightside_frame, text='TRIPLE',bg='#181515', fg='#FFF', font=50)
     text_top.config(font=('Helvetica bold',30))
     text_top.grid(column=1, row=0, sticky=tk.S)
@@ -174,6 +160,7 @@ def right_frame(container):
     text_bottom = tk.Label(rightside_frame, text='ARCADE',bg='#181515', fg='red', font=50)
     text_bottom.config(font=('Helvetica bold',30))
     text_bottom.grid(column=1, row=1, sticky=tk.N)
+
     # Define canvas to display image.
     global canvas_right
     canvas_right = tk.Canvas(rightside_frame, width=600, height=600, bg='white')
@@ -190,13 +177,13 @@ def right_frame(container):
 def key_press(e):
     # print(e.keycode)
     global gbl_game_id
-    #down or right key -> below
+    #down  -> below
     if e.keycode == 116:
         if gbl_game_id != 10:
             gbl_game_id += 1
             select_game()
 
-    #up or left key -> up
+    #up -> up
     elif e.keycode == 111:
         if gbl_game_id != 0:
             gbl_game_id -= 1
@@ -212,6 +199,7 @@ def key_released(e):
 
 #create main window function
 def create_main_window():
+    #global main window
     global window
     window = tk.Tk()
     window.title('Game Menu')
@@ -279,8 +267,8 @@ def close(*event):  # Exit application
 
 # select game to play.
 def select_game():
+
     global gbl_game_id, labels, canvas_right
-    global game_1, game_2, game_3, game_4
     img= ImageTk.PhotoImage(Image.open(f"10_ROMGames/Images/{game_images[gbl_game_id]}").resize((600, 600)))
     canvas_right.create_image(300,300,image=img)
     canvas_right.image = img
@@ -290,11 +278,13 @@ def select_game():
 
 #clear frames
 def clear_frames():
+
     global leftside_frame, rightside_frame
-    #clear frame
+    #clear left frame
     for widgets in leftside_frame.winfo_children():
       widgets.destroy()
 
+    #clear left frame
     for widgets in rightside_frame.winfo_children():
       widgets.destroy()
 
@@ -448,9 +438,18 @@ def pay_screen_time():
 #Game menu screen
 def gamemenu_screen():
     global gbl_game_id
-    #left side
+
+    #####left side#######
     global leftside_frame, window
-    
+     # bind the mousewheel to scroll up/down
+    # leftside_frame.bind("<MouseWheel>", lambda x: canvas.yview_scroll(int(-1*(x.delta/40)), "units"))
+ # bind the mousewheel to scroll up/down
+    # leftside_frame.bind("<MouseWheel>", lambda x: canvas.yview_scroll(int(-1*(x.delta/40)), "units"))
+
+    # labels = [Label(frame, text=str(i)) for i in range(20)] # make some Labels
+    # for l in labels: l.pack() # pack them
+    # labels = [Label(frame, text=str(i)) for i in range(20)] # make some Labels
+    # for l in labels: l.pack() # pack them
     # define grid columns
     leftside_frame.columnconfigure(0, weight=1)
     leftside_frame.columnconfigure(1, weight=1)
@@ -468,14 +467,12 @@ def gamemenu_screen():
 
     # Define content
     # Left side Title
-   # Left side Title
     global text
     text = tk.Label(leftside_frame, text='CHOOSE GAME',bg='#181515', fg='#FFF', font=50)
     text.config(font=('Helvetica bold',80))
     text.grid(column=0, row=0, columnspan=4, padx=40, sticky=tk.W)
 
-
-    # 
+    # Canvas for scrollbar
     canvas = Canvas(leftside_frame, height=400, highlightthickness=0,  bg="#181515") # a canvas in the parent object
     frame = Frame(canvas, bg="#181515") # a frame in the canvas
 
@@ -512,12 +509,8 @@ def gamemenu_screen():
     frame.bind("<Configure>", lambda x: canvas.configure(scrollregion=canvas.bbox("all")))
     window.bind_all("<Down>", lambda x: canvas.yview_scroll(1, 'units')) # bind "Down" to scroll down
     window.bind_all("<Up>", lambda x: canvas.yview_scroll(-1, 'units')) # bind "Up" to scroll up
-    # bind the mousewheel to scroll up/down
-    # leftside_frame.bind("<MouseWheel>", lambda x: canvas.yview_scroll(int(-1*(x.delta/40)), "units"))
-
-    # labels = [Label(frame, text=str(i)) for i in range(20)] # make some Labels
-    # for l in labels: l.pack() # pack them
-
+   
+    #global labels for gamelist
     global labels
     labels = []
     for i in range(11):
@@ -526,6 +519,7 @@ def gamemenu_screen():
         labels.append(label)
     for i in range(11): 
         labels[i].grid(column=0, row=i+1, columnspan=2, padx= 80, pady= 5, sticky=tk.W)
+
     #highligth selected game
     labels[gbl_game_id]['text'] = f">{game_names[gbl_game_id]}"
 
@@ -541,6 +535,7 @@ def gamemenu_screen():
     select_img = tk.Label(leftside_frame, image=img)
     select_img.grid(column=1, row=6, sticky=tk.W)
     select_img.image = img
+
     #play label
     play = tk.Label(leftside_frame, text='PLAY', bg='#181515', fg='orange')
     play.config(font=('Helvetica bold',30))
@@ -555,13 +550,14 @@ def gamemenu_screen():
     play_img.image = img
 
 
-    #right side
+    ######right side########
 
     global rightside_frame
     
     # define grid columns
     rightside_frame.columnconfigure(0, weight=1)
     rightside_frame.columnconfigure(1, weight=1)
+
     # define grid rows
     rightside_frame.rowconfigure(0, weight=1)
     rightside_frame.rowconfigure(1, weight=1)
@@ -577,9 +573,11 @@ def gamemenu_screen():
     text_bottom = tk.Label(rightside_frame, text='ARCADE',bg='#181515', fg='red', font=50)
     text_bottom.config(font=('Helvetica bold',30))
     text_bottom.grid(column=1, row=1, sticky=tk.N)
+
     # Define canvas to display image.
     global canvas_right
     canvas_right = tk.Canvas(rightside_frame, width=600, height=600, bg='white')
+
     # select image
     img= ImageTk.PhotoImage(Image.open(f"10_ROMGames/Images/{game_images[gbl_game_id]}").resize((600, 600)))
  
@@ -621,7 +619,7 @@ def thread_function():
 
         # payment_status = int(requests.get(url=payment_check_url+f"&game_id={game_status}").text)
         
-        client = razorpay.Client(auth=(your_id, your_secret))
+        # client = razorpay.Client(auth=(your_id, your_secret))
 
         # result = client.qrcode.fetch_all_payments(qr_id)
         result = 1
@@ -697,13 +695,15 @@ def thread_timer():
     
 #start game selected by user.
 def start_game():
+    command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
+    os.system(command_to_play_game)
 
     #disply pay screen
-    display_pay_screen()
+    # display_pay_screen()
     
-    x = threading.Thread(target=thread_function, args=())
-    x.start()
-    print(1)
+    # x = threading.Thread(target=thread_function, args=())
+    # x.start()
+    # print(1)
     
 def thread_function_repay():
 
