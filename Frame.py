@@ -16,6 +16,8 @@ import time
 
 #global variable to show selected game.
 gbl_game_id = 0
+#game start
+is_start = False
 # Is Alt-F4 pressed?
 pressed_f4 = False 
 #variable to store game process ID
@@ -26,9 +28,17 @@ game_sources = ["Contra.nes", "Donkey_Kong.nes", "Excitebike.nes", "Kung_Fu.nes"
 game_names = ["Contra", "Donkey kong", "Excite Bike", "Street Fighter", "Metroid", "Sparta X", "Pac Man", "Road Fighter", "Super Mario Bros", "Tetris", "Legend of Zelda"]
 
 # clock timer thread
-global th_clock, e_clock
+# th_clock, e_clock
 # e_clock = threading.Event()
 # th_clock = threading.Thread(target=clock_thread, args=(e_clock,))
+def check_pid(pid):        
+    """ Check For the existence of a unix pid. """
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
 
 #Function for leftside Frame of window
 def left_frame(container):
@@ -241,8 +251,36 @@ def create_main_window():
     # Bind the key event
     window.bind('<KeyPress>',key_press)
     window.bind('<KeyRelease>',key_released )
+
+    #Checking 
+    global th_game_check 
+    th_game_check = threading.Thread(target=check_thread, args=())
+    th_game_check.daemon = True
+    th_game_check.start()
     #start mainwindow
     window.mainloop()
+
+def check_thread():
+    global is_start
+    while True:
+        if is_start:
+            with open(pid_file_path,"r") as read_file:
+                pid_of_game = read_file.read()
+            print(pid_of_game)
+            
+            # check = f"if [ -d /proc/{pid_of_game} ]; then echo Running; else echo Not running;fi"
+            # result = subprocess.call(check, shell=True)
+            result = check_pid(int(pid_of_game))
+            print("check:", result)
+            # print(type(result), result)
+            if result is False:
+                clear_frames()
+                gamemenu_screen()
+                global window
+                window.deiconify()
+                
+                is_start = False
+                
 
 def do_exit():
 
@@ -398,7 +436,7 @@ def repay_screen():
     game_1.config(font=('Helvetica bold',30))
     game_1.grid(column=0, row=1, columnspan=2, padx= 40, sticky=tk.W)
      #game_1 label
-    game_2 = tk.Label(leftside_frame, text='SCAN & PAYRS 10 FOR 2 MINUTES PLAY', bg='#181515', fg='orange')
+    game_2 = tk.Label(leftside_frame, text='SCAN & PAY RS 10 FOR 2 MINUTES PLAY', bg='#181515', fg='orange')
     game_2.config(font=('Helvetica bold',30))
     game_2.grid(column=0, row=2, columnspan=2, padx= 80, sticky=tk.W)
 
@@ -594,7 +632,10 @@ def display_pay_screen():
 def pay_thread_function(e):
 
     global count_time
+    
     total_time = 30
+    
+    # window.withdraw()
 
     #check payment status
         
@@ -621,59 +662,79 @@ def pay_thread_function(e):
         # result = client.qrcode.fetch_all_payments(qr_id)
         result = 1
         global text
+        
         if result == 1 and total_time == 20:
             text["text"] = "PROCESSING..."
             time.sleep(2)
             # text["text"] = "PAYMENT SUCCESSFUL"
             # time.sleep(2)
-            print("here")
+            # print("here")
             if result == 1:
-                #start game
-                global gbl_game_id
-                global second_win
+            #     #start game
+            #     global gbl_game_id
+            #     global second_win
 
-                second_win = Toplevel()
-                second_win.title("timer")
-                second_win.geometry("130x40")
-                second_win.overrideredirect(True)
-                second_win.attributes('-topmost',True)
-                second_win.rowconfigure(0, weight=1)
-                second_win.columnconfigure(0, weight=1)
+            #     second_win = Toplevel()
+            #     second_win.title("timer")
+            #     second_win.geometry("130x40")
+            #     second_win.overrideredirect(True)
+            #     second_win.attributes('-topmost',True)
+            #     second_win.rowconfigure(0, weight=1)
+            #     second_win.columnconfigure(0, weight=1)
 
-                global text_time
-                text_time = tk.Label(second_win, text='3:00',bg='#181515', fg='#FFF', font=50)
-                text_time.config(font=('Helvetica bold',20))
-                text_time.grid(column=0, row=0, sticky=tk.EW)
+            #     global text_time
+            #     text_time = tk.Label(second_win, text='3:00',bg='#181515', fg='#FFF', font=50)
+            #     text_time.config(font=('Helvetica bold',20))
+            #     text_time.grid(column=0, row=0, sticky=tk.EW)
                 
-                #create thread for clock
-                global th_clock, e_clock
-                e_clock = threading.Event()
-                th_clock = threading.Thread(target=clock_thread, args=(e_clock,))
-                th_clock.daemon = True
-                th_clock.start()
+            #     #create thread for clock
+            #     global th_clock, e_clock
+            #     e_clock = threading.Event()
+            #     th_clock = threading.Thread(target=clock_thread, args=(e_clock,))
+            #     th_clock.daemon = True
+            #     th_clock.start()
 
-                # import multiprocessing
-                # global proc
-                # proc = multiprocessing.Process(target=clock_thread, args=())
-                # proc.start()
-                print(1)
-                command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
-                os.system(command_to_play_game)
-                global window
-                window.withdraw()
+                # if gbl_game_id == 0:
+                #     # pass
+                #     showwarning(title='Warning', message='Please select a game to play.')
+            
+                # else:
+                    global second_win
+                    second_win = Toplevel()
+                    second_win.title("timer")
+                    second_win.geometry("130x40")
+                    second_win.overrideredirect(True)
+                    second_win.attributes('-topmost',True)
+                    second_win.rowconfigure(0, weight=1)
+                    second_win.columnconfigure(0, weight=1)
+                    global text_time
+                    text_time = tk.Label(second_win, text='3:00',bg='#181515', fg='#FFF', font=50)
+                    text_time.config(font=('Helvetica bold',20))
+                    text_time.grid(column=0, row=0, sticky=tk.EW)
+
+                    timer = threading.Thread(target=clock_thread, args=())
+                    timer.start()
+                    print(1)
+                    command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
+                    os.system(command_to_play_game)
+                    global window
+                    window.withdraw()
+                    
+                    global is_start
+                    is_start = True
                     
 
-                x2 = threading.Thread(target=thread_function2, args=())
-                x2.daemon = True
-                x2.start()
+                    x2 = threading.Thread(target=thread_function2, args=())
+                    x2.daemon = True
+                    x2.start()
 
-                print(2)
+                # print(2)
             elif result == 0:
-                print("jere")
-                text["text"] = "FAILED! TRY AGAIN"
-                time.sleep(5)
-                clear_frames()
-                gamemenu_screen()
+                    print("jere")
+                    text["text"] = "FAILED! TRY AGAIN"
+                    time.sleep(5)
+                    clear_frames()
+                    gamemenu_screen()
         #     result = False
         # elif result is False and total_time == 21:
         #     time.sleep(2)
@@ -682,7 +743,7 @@ def pay_thread_function(e):
         # print(result)
         
     
-def clock_thread(e):
+def clock_thread():
 
     total_time = 120
 
@@ -700,6 +761,7 @@ def clock_thread(e):
     
 #start game selected by user.
 def start_game():
+    
     # command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
     # os.system(command_to_play_game)
 
@@ -746,12 +808,16 @@ def thread_function2():
     pause_command = f"kill -STOP {pid_of_game}"
     resume_command = f"kill -CONT {pid_of_game}"
 
+    check = f"ps -p {34531} > /dev/null"
+    result = subprocess.call(check, shell=True)
+    print("check:", result)
+
     ## Time to pause the game
     subprocess.call(pause_command, shell=True)
     # https://unix.stackexchange.com/questions/280860/how-to-hide-a-specific-process
     # os.system(f"mount -o bind /empty/dir /proc/{pid_of_game}")
     
-    print("stop")
+    # print("stop")
     global window
     window.deiconify()
     showwarning(title='Warning', message='Please pay again to play.')
@@ -759,8 +825,8 @@ def thread_function2():
     repay_screen()
     
     #clock timer stop and kill
-    global th_clock, e_clock
-    e_clock.clear()
+    # global th_clock, e_clock
+    # e_clock.clear()
     
     
     # Terminate the process
@@ -783,4 +849,4 @@ if __name__ == "__main__":
     create_main_window()
 
 #process killing
-sys.exit()
+# sys.exit()
