@@ -12,6 +12,7 @@ import time
 import subprocess
 import webbrowser
 import time
+import json
 # import razorpay
 
 #global variable to show selected game.
@@ -846,6 +847,13 @@ def thread_function2():
 
 #main function
 if __name__ == "__main__":
+    qr = 'qr_KwTRRYBIfkHvp5'
+    payment_check_url = f"https://8237-188-43-136-41.jp.ngrok.io/check?qr_code={qr}"
+    game_status = requests.get(url=payment_check_url).json()
+    # data = json.load(game_status)
+    print("url", game_status[0]['status'])
+    if game_status[0]['status']:
+        print("ok")
     create_main_window()
 
 #process killing
