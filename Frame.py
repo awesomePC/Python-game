@@ -13,7 +13,10 @@ import subprocess
 import webbrowser
 import time
 import json
+from signal import SIGKILL
 # import razorpay
+#total_time
+total_time = 120
 
 #global variable to show selected game.
 gbl_game_id = 0
@@ -252,6 +255,16 @@ def create_main_window():
     # Bind the key event
     window.bind('<KeyPress>',key_press)
     window.bind('<KeyRelease>',key_released )
+    #timer window
+    global second_win
+    second_win = Toplevel()
+    second_win.title("timer")
+    second_win.geometry("130x40")
+    second_win.overrideredirect(True)
+    second_win.attributes('-topmost',True)
+    second_win.rowconfigure(0, weight=1)
+    second_win.columnconfigure(0, weight=1)
+    second_win.withdraw()
 
     #Checking 
     global th_game_check 
@@ -267,12 +280,12 @@ def check_thread():
         if is_start:
             with open(pid_file_path,"r") as read_file:
                 pid_of_game = read_file.read()
-            print(pid_of_game)
+            # print(pid_of_game)
             
             # check = f"if [ -d /proc/{pid_of_game} ]; then echo Running; else echo Not running;fi"
             # result = subprocess.call(check, shell=True)
             result = check_pid(int(pid_of_game))
-            print("check:", result)
+            # print("check:", result)
             # print(type(result), result)
             if result is False:
                 clear_frames()
@@ -323,14 +336,18 @@ def select_game():
 #clear frames
 def clear_frames():
 
-    global leftside_frame, rightside_frame
-    #clear left frame
+    global window, leftside_frame, rightside_frame
+     #clear left frame
     for widgets in leftside_frame.winfo_children():
       widgets.destroy()
 
     #clear left frame
     for widgets in rightside_frame.winfo_children():
       widgets.destroy()
+    #clear window
+    # for items in window.winfo_children():
+    #     items.destroy()
+   
 
 #Pay screen generate function
 def pay_screen():
@@ -509,7 +526,9 @@ def gamemenu_screen():
     text.grid(column=0, row=0, columnspan=4, padx=40, sticky=tk.W)
 
     # Canvas for scrollbar
+    # global canvas
     canvas = Canvas(leftside_frame, height=400, highlightthickness=0,  bg="#181515") # a canvas in the parent object
+    # global frame
     frame = Frame(canvas, bg="#181515") # a frame in the canvas
 
     # define grid columns
@@ -550,7 +569,9 @@ def gamemenu_screen():
     global labels
     labels = []
     for i in range(11):
+        
         label = tk.Label(frame, text=f'  {game_names[i]}', bg='#181515', fg='orange')
+        print(i)
         label.config(font=('Helvetica bold',30))
         labels.append(label)
     for i in range(11): 
@@ -634,7 +655,7 @@ def pay_thread_function(e):
 
     global count_time
     
-    total_time = 30
+    t_time = 30
     
     # window.withdraw()
 
@@ -649,12 +670,12 @@ def pay_thread_function(e):
     your_id = pay_info[3].split(":")[1]
     your_secret = pay_info[4].split(":")[1]
 
-    while total_time > 20:
+    while t_time > 20:
 
         time.sleep(1)
-        total_time = total_time - 1
+        t_time = t_time - 1
         # display_pay_screen()
-        count_time['text'] = f"{total_time} SECS LEFT..."
+        count_time['text'] = f"{t_time} SECS LEFT..."
 
         # payment_status = int(requests.get(url=payment_check_url+f"&game_id={game_status}").text)
         
@@ -664,7 +685,7 @@ def pay_thread_function(e):
         result = 1
         global text
         
-        if result == 1 and total_time == 20:
+        if result == 1 and t_time == 20:
             text["text"] = "PROCESSING..."
             time.sleep(2)
             # text["text"] = "PAYMENT SUCCESSFUL"
@@ -701,13 +722,14 @@ def pay_thread_function(e):
             
                 # else:
                     global second_win
-                    second_win = Toplevel()
-                    second_win.title("timer")
-                    second_win.geometry("130x40")
-                    second_win.overrideredirect(True)
-                    second_win.attributes('-topmost',True)
-                    second_win.rowconfigure(0, weight=1)
-                    second_win.columnconfigure(0, weight=1)
+                    second_win.deiconify()
+                    # second_win = Toplevel()
+                    # second_win.title("timer")
+                    # second_win.geometry("130x40")
+                    # second_win.overrideredirect(True)
+                    # second_win.attributes('-topmost',True)
+                    # second_win.rowconfigure(0, weight=1)
+                    # second_win.columnconfigure(0, weight=1)
                     global text_time
                     text_time = tk.Label(second_win, text='3:00',bg='#181515', fg='#FFF', font=50)
                     text_time.config(font=('Helvetica bold',20))
@@ -730,7 +752,7 @@ def pay_thread_function(e):
                     x2.start()
 
                 # print(2)
-            elif result == 0:
+            elif result == 0 and t_time == 20:
                     print("jere")
                     text["text"] = "FAILED! TRY AGAIN"
                     time.sleep(5)
@@ -744,9 +766,107 @@ def pay_thread_function(e):
         # print(result)
         
     
-def clock_thread():
+def repay_thread_clock_function():
 
+    global count_time
+    global total_time
+    t_time = 30
+    
+    # window.withdraw()
+
+    #check payment status
+        
+    with open('pay_info.txt') as f:
+        pay_info = f.readlines()
+
+    merchant_id = pay_info[0].split(":")[1]
+    qr_id = pay_info[1].split(":")[1]
+    webhook_url = pay_info[2].split(":")[1]
+    your_id = pay_info[3].split(":")[1]
+    your_secret = pay_info[4].split(":")[1]
+
+    while t_time > 20:
+
+        time.sleep(1)
+        t_time = t_time - 1
+        # display_pay_screen()
+        count_time['text'] = f"{t_time} SECS LEFT..."
+        print("total t_time", t_time)
+        # payment_status = int(requests.get(url=payment_check_url+f"&game_id={game_status}").text)
+        
+        # client = razorpay.Client(auth=(your_id, your_secret))
+
+        # result = client.qrcode.fetch_all_payments(qr_id)
+        result = 0
+        global text
+        
+        if t_time == 20:
+            text["text"] = "PROCESSING..."
+            time.sleep(2)
+            # text["text"] = "PAYMENT SUCCESSFUL"
+            # time.sleep(2)
+            # print("here")
+            if result == 1:
+          
+                    global second_win
+                    second_win.deiconify()
+           
+                    global text_time
+                    text_time = tk.Label(second_win, text='3:00',bg='#181515', fg='#FFF', font=50)
+                    text_time.config(font=('Helvetica bold',20))
+                    text_time.grid(column=0, row=0, sticky=tk.EW)
+                    
+                    
+                    total_time = 120
+                    timer = threading.Thread(target=clock_thread, args=())
+                    timer.start()
+                    print('repay')
+                    # command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
+                    # os.system(command_to_play_game)
+                    with open(pid_file_path,"r") as read_file:
+                        pid_of_game = read_file.read()
+                    resume_command = f"kill -CONT {pid_of_game}"
+                    subprocess.call(resume_command, shell=True)
+                    
+                    global window
+                    window.withdraw()
+                    
+                    global is_start
+                    is_start = True
+                    
+
+                    x2 = threading.Thread(target=thread_function2, args=())
+                    x2.daemon = True
+                    x2.start()
+
+                # print(2)
+            elif result == 0:
+                    print("jere")
+                    text["text"] = "FAILED! TRY AGAIN"
+                    time.sleep(5)
+                    with open(pid_file_path,"r") as read_file:
+                        pid_of_game = read_file.read()
+                    print(pid_of_game)
+                    # kill_command = f"sudo kill {pid_of_game}"
+                    os.kill(int(pid_of_game), SIGKILL)
+                    ## Time to pause the game
+                    # subprocess.call(kill_command, shell=True)
+                    print("end")
+                    clear_frames()
+                    gamemenu_screen()
+        #     result = False
+        # elif result is False and total_time == 21:
+        #     time.sleep(2)
+        #     text["text"] = "FAILED! TRY AGAIN"
+        #     time.sleep(2)
+        # print(result)
+        
+
+
+def clock_thread():
+    global total_time
     total_time = 120
+    global text_time
 
     while total_time > 0:
         time.sleep(1)
@@ -809,19 +929,19 @@ def thread_function2():
     pause_command = f"kill -STOP {pid_of_game}"
     resume_command = f"kill -CONT {pid_of_game}"
 
-    check = f"ps -p {34531} > /dev/null"
-    result = subprocess.call(check, shell=True)
-    print("check:", result)
+    # check = f"ps -p {34531} > /dev/null"
+    # result = subprocess.call(check, shell=True)
+    # print("check:", result)
 
     ## Time to pause the game
     subprocess.call(pause_command, shell=True)
-    # https://unix.stackexchange.com/questions/280860/how-to-hide-a-specific-process
-    # os.system(f"mount -o bind /empty/dir /proc/{pid_of_game}")
     
+    global total_time
+    total_time = 1
     # print("stop")
     global window
     window.deiconify()
-    showwarning(title='Warning', message='Please pay again to play.')
+    # showwarning(title='Warning', message='Please pay again to play.')
     clear_frames()
     repay_screen()
     
@@ -836,14 +956,14 @@ def thread_function2():
 
     #repay thread
     global th_pay, e_pay
-    x = threading.Thread(target=pay_thread_function, args=(e_pay,))
+    x = threading.Thread(target=repay_thread_clock_function, args=())
     x.daemon = True
     x.start()
     global second_win
     second_win.withdraw()
     time.sleep(30)
-    window.withdraw()
-    subprocess.call(resume_command, shell=True)
+    # window.withdraw()
+    # subprocess.call(resume_command, shell=True)
 
 #main function
 if __name__ == "__main__":
