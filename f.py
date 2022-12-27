@@ -419,7 +419,7 @@ def pay_screen():
     global canvas
     canvas = tk.Canvas(rightside_frame, width=600, height=600, bg='white')
     # select image
-    img= ImageTk.PhotoImage(Image.open("QR_CODE.png").resize((600, 600)))
+    img= ImageTk.PhotoImage(Image.open("qr_code.png").resize((600, 600)))
  
     canvas.create_image(300,300,image=img)
     canvas.image = img
@@ -660,119 +660,82 @@ def pay_thread_function(e):
 
     global count_time
 
-    
     t_time = 30
     
     # window.withdraw()
 
     #check payment status
         
-    with open('pay_info.txt') as f:
-        pay_info = f.readlines()
+    with open('qr_code.txt') as f:
+        qr_code = f.readline().strip('\n')
 
-    merchant_id = pay_info[0].split(":")[1]
-    qr_id = pay_info[1].split(":")[1]
-    webhook_url = pay_info[2].split(":")[1]
-    your_id = pay_info[3].split(":")[1]
-    your_secret = pay_info[4].split(":")[1]
-
-    while t_time > 20:
+    while t_time > 0:
 
         time.sleep(1)
         t_time = t_time - 1
         # display_pay_screen()
         count_time['text'] = f"{t_time} SECS LEFT..."
 
-        # payment_status = int(requests.get(url=payment_check_url+f"&game_id={game_status}").text)
-        
-        # client = razorpay.Client(auth=(your_id, your_secret))
+        # payment_status 
+        qr = 'qr_KwTRRYBIfkHvp5'
 
-        # result = client.qrcode.fetch_all_payments(qr_id)
-        result = 1
-        global text
-        
-        if result == 1 and t_time == 20:
+        try:
+            payment_check_url = f"https://8237-188-43-136-41.jp.ngrok.io/check?qr_code={qr_code}"
+       
+            game_status = requests.get(url=payment_check_url).json()
+        except:
+            err_msg_1 = "Payment Link Down Exiting the system!"
+            # sys.exit(err_msg_1)
+            print("error")
+        # data = json.load(game_status)
+        print("url", len(game_status))
+        length = len(game_status)
+        if length == 0 or game_status[length-1]['status'] is False:
+            result = False
+        elif game_status[length-1]['status']:
+            result = True
+        if result:
+            print("ok")
+    
             text["text"] = "PROCESSING..."
             time.sleep(2)
-            # text["text"] = "PAYMENT SUCCESSFUL"
-            # time.sleep(2)
-            # print("here")
-            if result == 1:
-            #     #start game
-            #     global gbl_game_id
-            #     global second_win
-
-            #     second_win = Toplevel()
-            #     second_win.title("timer")
-            #     second_win.geometry("130x40")
-            #     second_win.overrideredirect(True)
-            #     second_win.attributes('-topmost',True)
-            #     second_win.rowconfigure(0, weight=1)
-            #     second_win.columnconfigure(0, weight=1)
-
-            #     global text_time
-            #     text_time = tk.Label(second_win, text='3:00',bg='#181515', fg='#FFF', font=50)
-            #     text_time.config(font=('Helvetica bold',20))
-            #     text_time.grid(column=0, row=0, sticky=tk.EW)
-                
-            #     #create thread for clock
-            #     global th_clock, e_clock
-            #     e_clock = threading.Event()
-            #     th_clock = threading.Thread(target=clock_thread, args=(e_clock,))
-            #     th_clock.daemon = True
-            #     th_clock.start()
-
-                # if gbl_game_id == 0:
-                #     # pass
-                #     showwarning(title='Warning', message='Please select a game to play.')
             
-                # else:
-                    global second_win
-                    second_win.deiconify()
-                    # second_win = Toplevel()
-                    # second_win.title("timer")
-                    # second_win.geometry("130x40")
-                    # second_win.overrideredirect(True)
-                    # second_win.attributes('-topmost',True)
-                    # second_win.rowconfigure(0, weight=1)
-                    # second_win.columnconfigure(0, weight=1)
-                    global text_time
-                    text_time = tk.Label(second_win, text='3:00',bg='#181515', fg='#FFF', font=50)
-                    text_time.config(font=('Helvetica bold',20))
-                    text_time.grid(column=0, row=0, sticky=tk.EW)
+            global second_win
+            second_win.deiconify()
 
-                    timer = threading.Thread(target=clock_thread, args=())
-                    timer.start()
-                    print(1)
-                    command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
-                    os.system(command_to_play_game)
-                    global window
-                    window.withdraw()
-                    
-                    global is_start
-                    is_start = True
-                    
+            global text_time
+            text_time = tk.Label(second_win, text='2:00',bg='#181515', fg='#FFF', font=50)
+            text_time.config(font=('Helvetica bold',20))
+            text_time.grid(column=0, row=0, sticky=tk.EW)
 
-                    x2 = threading.Thread(target=thread_function2, args=())
-                    x2.daemon = True
-                    x2.start()
+            timer = threading.Thread(target=clock_thread, args=())
+            timer.start()
+            print(1)
+            command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
+            os.system(command_to_play_game)
+            global window
+            window.withdraw()
+            
+            global is_start
+            is_start = True
+
+            t_time = 0
+            
+
+            x2 = threading.Thread(target=thread_function2, args=())
+            x2.daemon = True
+            x2.start()
 
                 # print(2)
-            elif result == 0 and t_time == 20:
-                    print("jere")
-                    text["text"] = "FAILED! TRY AGAIN"
-                    time.sleep(5)
-                    clear_frames()
-                    print("pay+menu")
-                    gamemenu_screen()
-        #     result = False
-        # elif result is False and total_time == 21:
-        #     time.sleep(2)
-        #     text["text"] = "FAILED! TRY AGAIN"
-        #     time.sleep(2)
-        # print(result)
+        elif result is False and t_time == 0:
+            print("jere")
+            text["text"] = "FAILED! TRY AGAIN"
+            time.sleep(5)
+            clear_frames()
+            print("pay+menu")
+            gamemenu_screen()
+   
         
-    
 def repay_thread_clock_function():
 
     global count_time
@@ -783,98 +746,91 @@ def repay_thread_clock_function():
     # window.withdraw()
 
     #check payment status
+    with open('qr_code.txt') as f:
+        qr_code = f.readline().strip('\n')
         
-    with open('pay_info.txt') as f:
-        pay_info = f.readlines()
-
-    merchant_id = pay_info[0].split(":")[1]
-    qr_id = pay_info[1].split(":")[1]
-    webhook_url = pay_info[2].split(":")[1]
-    your_id = pay_info[3].split(":")[1]
-    your_secret = pay_info[4].split(":")[1]
-
-    while t_time > 20:
+    while t_time > 0:
 
         time.sleep(1)
         t_time = t_time - 1
         # display_pay_screen()
         count_time['text'] = f"{t_time} SECS LEFT..."
         print("total t_time", t_time)
-        # payment_status = int(requests.get(url=payment_check_url+f"&game_id={game_status}").text)
-        
-        # client = razorpay.Client(auth=(your_id, your_secret))
-
-        # result = client.qrcode.fetch_all_payments(qr_id)
-        result = 0
+         # payment_status 
+        qr = 'qr_KwTRRYBIfkHvp5'
+        payment_check_url = f"https://8237-188-43-136-41.jp.ngrok.io/check?qr_code={qr_code}"
+        game_status = requests.get(url=payment_check_url).json()
+        # data = json.load(game_status)
+        print("url", len(game_status))
+        length = len(game_status)
+        if length == 0 or game_status[length-1]['status'] is False:
+            result = False
+        elif game_status[length-1]['status']:
+            result = True
+      
         global text
         
-        if t_time == 20:
+        if result:
             text["text"] = "PROCESSING..."
             time.sleep(2)
             # text["text"] = "PAYMENT SUCCESSFUL"
             # time.sleep(2)
             # print("here")
-            if result == 1:
+            # if result == 1:
           
-                    global second_win
-                    second_win.deiconify()
-           
-                    global text_time
-                    text_time = tk.Label(second_win, text='3:00',bg='#181515', fg='#FFF', font=50)
-                    text_time.config(font=('Helvetica bold',20))
-                    text_time.grid(column=0, row=0, sticky=tk.EW)
-                    
-                    
-                    total_time = 120
-                    timer = threading.Thread(target=clock_thread, args=())
-                    timer.start()
-                    print('repay')
-                    # command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
-                    # os.system(command_to_play_game)
-                    with open(pid_file_path,"r") as read_file:
-                        pid_of_game = read_file.read()
-                    resume_command = f"kill -CONT {pid_of_game}"
-                    subprocess.call(resume_command, shell=True)
-                    
-                    global window
-                    window.withdraw()
-                    
-                    global is_start
-                    
-                    is_start = True
-                    
+            global second_win
+            second_win.deiconify()
+    
+            global text_time
+            text_time = tk.Label(second_win, text='3:00',bg='#181515', fg='#FFF', font=50)
+            text_time.config(font=('Helvetica bold',20))
+            text_time.grid(column=0, row=0, sticky=tk.EW)
+            
+            
+            total_time = 120
+            timer = threading.Thread(target=clock_thread, args=())
+            timer.start()
+            print('repay')
+            # command_to_play_game = f"nohup nestopia 10_ROMGames/{game_sources[gbl_game_id]} -f & echo $! > 1.txt"
+            # os.system(command_to_play_game)
+            with open(pid_file_path,"r") as read_file:
+                pid_of_game = read_file.read()
+            resume_command = f"kill -CONT {pid_of_game}"
+            subprocess.call(resume_command, shell=True)
+            
+            global window
+            window.withdraw()
+            
+            global is_start
+            
+            is_start = True
 
-                    x2 = threading.Thread(target=thread_function2, args=())
-                    x2.daemon = True
-                    x2.start()
+            t_time = 0
+            
+
+            x2 = threading.Thread(target=thread_function2, args=())
+            x2.daemon = True
+            x2.start()
 
                 # print(2)
-            elif result == 0:
-                    print("jere")
-                    text["text"] = "FAILED! TRY AGAIN"
-                    time.sleep(5)
-                    with open(pid_file_path,"r") as read_file:
-                        pid_of_game = read_file.read()
-                    print(pid_of_game)
-                    # kill_command = f"sudo kill {pid_of_game}"
-                    # global is_start
-                    is_start = False
-                    
-                    os.kill(int(pid_of_game), SIGKILL)
-                    ## Time to pause the game
-                    # subprocess.call(kill_command, shell=True)
-                    print("end")
-                    clear_frames()
-                    print("repay+menu")
-                    gamemenu_screen()
-        #     result = False
-        # elif result is False and total_time == 21:
-        #     time.sleep(2)
-        #     text["text"] = "FAILED! TRY AGAIN"
-        #     time.sleep(2)
-        # print(result)
-        
-
+        elif result is False and t_time == 0:
+            print("jere")
+            text["text"] = "FAILED! TRY AGAIN"
+            time.sleep(5)
+            with open(pid_file_path,"r") as read_file:
+                pid_of_game = read_file.read()
+            print(pid_of_game)
+            # kill_command = f"sudo kill {pid_of_game}"
+            # global is_start
+            is_start = False
+            
+            os.kill(int(pid_of_game), SIGKILL)
+            ## Time to pause the game
+            # subprocess.call(kill_command, shell=True)
+            print("end")
+            clear_frames()
+            print("repay+menu")
+            gamemenu_screen()
 
 def clock_thread():
     global total_time
@@ -935,7 +891,7 @@ def repay_thread_function():
     
 
 def thread_function2():
-    time.sleep(20)
+    time.sleep(120)
      ## Extract PID of the game from th file!
     with open(pid_file_path,"r") as read_file:
         pid_of_game = read_file.read()
@@ -980,14 +936,11 @@ def thread_function2():
 
 #main function
 if __name__ == "__main__":
-    qr = 'qr_KwTRRYBIfkHvp5'
-    payment_check_url = f"https://8237-188-43-136-41.jp.ngrok.io/check?qr_code={qr}"
-    game_status = requests.get(url=payment_check_url).json()
-    # data = json.load(game_status)
-    print("url", game_status[0]['status'])
-    if game_status[0]['status']:
-        print("ok")
+   
     create_main_window()
+    
+    
+    # print("url", game_status[0]['status'])
 
 #process killing
 # sys.exit()
